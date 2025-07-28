@@ -55,7 +55,6 @@ cordova platform add browser
 
 ```bash
 cordova plugin add cordova-plugin-file
-cordova plugin add cordova-plugin-file-opener2
 cordova plugin add cordova-plugin-android-permissions
 ```
 
