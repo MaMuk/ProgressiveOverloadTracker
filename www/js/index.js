@@ -332,41 +332,49 @@ document.addEventListener('deviceready', function () {
     function exportExerciseHistory() {
         const data = getHistory();
         const json = JSON.stringify(data, null, 2);
+        const filename = "exerciseHistory.json";
 
-        if (window.cordova && cordova.platformId !== 'browser') {
-            // Native Cordova export (Android/iOS)
-            const blob = new Blob([json], { type: 'application/json' });
+        if (window.cordova && cordova.platformId === 'android') {
+            document.addEventListener("deviceready", () => {
+                const blob = new Blob([json], { type: 'application/json' });
 
-            window.resolveLocalFileSystemURL(cordova.file.externalDataDirectory, function (dirEntry) {
-                dirEntry.getFile("exerciseHistory.json", { create: true }, function (fileEntry) {
-                    fileEntry.createWriter(function (fileWriter) {
-                        fileWriter.write(blob);
-                        fileWriter.onwriteend = function () {
-                            alert("Exported to device successfully!");
-                        };
-                        fileWriter.onerror = function (e) {
-                            alert("Failed to write file: " + e.toString());
-                        };
+                // Use the standard Downloads directory
+                const downloadsDir = cordova.file.externalRootDirectory + "Download/";
+
+                window.resolveLocalFileSystemURL(downloadsDir, function (dirEntry) {
+                    dirEntry.getFile(filename, { create: true }, function (fileEntry) {
+                        fileEntry.createWriter(function (fileWriter) {
+                            fileWriter.onwriteend = function () {
+                                alert("Exported to Downloads folder");
+                            };
+                            fileWriter.onerror = function (e) {
+                                alert("Failed to write file: " + e.toString());
+                            };
+                            fileWriter.write(blob);
+                        });
+                    }, function (err) {
+                        alert("Failed to create file: " + JSON.stringify(err));
                     });
+                }, function (err) {
+                    alert("Failed to access Downloads folder: " + JSON.stringify(err));
                 });
-            }, function (err) {
-                alert("Failed to access file system: " + err.toString());
             });
         } else {
-            // Browser-compatible export
+            // Browser fallback
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'exerciseHistory.json';
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-
             URL.revokeObjectURL(url);
         }
     }
+
+
+
 
     function createSetEntry(set = { weight: '', reps: '', effort: 'easy' }) {
         const setDiv = document.createElement("div");
