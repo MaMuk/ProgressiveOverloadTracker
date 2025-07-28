@@ -9,22 +9,56 @@ document.addEventListener('deviceready', function () {
     const exerciseInput = document.getElementById("exercise-name");
     const suggestionsList = document.getElementById("suggestions-list");
     let currentlyEditing = null; // { exercise, sessionIndex }
+    const exerciseContainer = document.getElementById("exercise-container");
+    const settingsContainer = document.getElementById("settings-container");
 
     document.getElementById("home-button").addEventListener('click', () => {
+
+        if(exerciseContainer.classList.contains('d-none')){
+            exerciseContainer.classList.remove('d-none');
+        }
+        if(!settingsContainer.classList.contains('d-none')){
+            settingsContainer.classList.add('d-none');
+        }
         document.getElementById("exercise-name").value = "";
 
         document.getElementById("exercise-form").reset();
 
-        const setsContainer = document.getElementById("sets-container");
         setsContainer.innerHTML = ``;
-        setsContainer.appendChild(createSetEntry());
         currentlyEditing = null;
         const suggestionsList = document.getElementById("suggestions-list");
         if (suggestionsList) suggestionsList.style.display = "none";
 
         listWorkoutDates();
     });
+    document.getElementById("settings-button").addEventListener('click', ()=> {
+        if(!exerciseContainer.classList.contains('d-none')){
+            exerciseContainer.classList.add('d-none');
+        }
+        if(settingsContainer.classList.contains('d-none')){
+            settingsContainer.classList.remove('d-none');
+        }
+    });
+    document.getElementById("export-button").addEventListener('click', exportExerciseHistory);
+    document.getElementById("import-button").addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
 
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (confirm("This will overwrite your current history. Continue?")) {
+                    saveHistory(data);
+                    alert('Exercise history imported successfully!');
+                }
+            } catch (err) {
+                alert('Invalid JSON file');
+            }
+            input.value = "";
+        };
+        reader.readAsText(file);
+    });
     listWorkoutDates();
 
 
@@ -59,7 +93,6 @@ document.addEventListener('deviceready', function () {
         return matchedExercises.map(e => e.exercise);
     }
 
-
     function listWorkoutDates() {
         const history = getHistory();
         const dateToWorkouts = {};
@@ -76,44 +109,65 @@ document.addEventListener('deviceready', function () {
         const sortedDates = Object.keys(dateToWorkouts).sort((a, b) => b.localeCompare(a));
 
         const container = document.getElementById("history-entries");
-        container.innerHTML = "<h2>Workout Dates</h2>";
+        container.innerHTML = "<h3>Workout Days</h3>";
 
         if (sortedDates.length === 0) {
             container.innerHTML += "<p>No workouts recorded yet.</p>";
             return;
         }
 
-        const ul = document.createElement("ul");
+        const table = document.createElement("table");
+        const tbody = document.createElement("tbody");
+
         sortedDates.forEach(date => {
-            const li = document.createElement("li");
-            li.style.cursor = "pointer";
-            li.textContent = new Date(date).toDateString();
-            li.addEventListener("click", () => showWorkoutsForDate(dateToWorkouts[date], date));
-            ul.appendChild(li);
+            const tr = document.createElement("tr");
+            tr.style.cursor = "pointer";
+
+            const iconTd = document.createElement("td");
+            iconTd.textContent = "🔎";
+            tr.appendChild(iconTd);
+
+            const dateTd = document.createElement("td");
+            dateTd.textContent = new Date(date).toDateString();
+            tr.appendChild(dateTd);
+
+            tr.addEventListener("click", () => showWorkoutsForDate(dateToWorkouts[date], date));
+
+            tbody.appendChild(tr);
         });
 
-        container.appendChild(ul);
+        table.appendChild(tbody);
+        container.appendChild(table);
     }
 
     function showWorkoutsForDate(workouts, dateKey) {
         const container = document.getElementById("history-entries");
-        container.innerHTML = `<h2>Workouts on ${new Date(dateKey).toDateString()}</h2>`;
+        container.innerHTML = `<h3>Workouts on ${new Date(dateKey).toDateString()}</h3>`;
 
-        const ul = document.createElement("ul");
+        const table = document.createElement("table");
+        const tbody = document.createElement("tbody");
 
         workouts.forEach(({ exercise, sessionIndex, session }) => {
-            const li = document.createElement("li");
-            li.style.cursor = "pointer";
-            li.textContent = `${exercise} (${session.sets.length} sets)`;
+            const tr = document.createElement("tr");
+            tr.style.cursor = "pointer";
 
-            li.addEventListener("click", () => {
+            const iconTd = document.createElement("td");
+            iconTd.textContent = "✏️";
+            tr.appendChild(iconTd);
+
+            const exerciseTd = document.createElement("td");
+            exerciseTd.textContent = `${exercise} (${session.sets.length} sets)`;
+            tr.appendChild(exerciseTd);
+
+            tr.addEventListener("click", () => {
                 loadSessionForEditing(exercise, sessionIndex);
             });
 
-            ul.appendChild(li);
+            tbody.appendChild(tr);
         });
 
-        container.appendChild(ul);
+        table.appendChild(tbody);
+        container.appendChild(table);
     }
 
     function loadSessionForEditing(exercise, sessionIndex) {
@@ -125,7 +179,6 @@ document.addEventListener('deviceready', function () {
         const exerciseInput = document.getElementById("exercise-name");
         exerciseInput.value = exercise;
 
-        const setsContainer = document.getElementById("sets-container");
         setsContainer.innerHTML = "";
 
         session.sets.forEach(set => {
@@ -167,13 +220,11 @@ document.addEventListener('deviceready', function () {
         const suggestions = getExerciseSuggestions('');
         renderSuggestions(suggestions);
     });
-
     exerciseInput.addEventListener('blur', () => {
         setTimeout(() => {
             suggestionsList.style.display = 'none';
         }, 150); // slight delay so click can register
     });
-
 
     function getHistory() {
         return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
@@ -197,34 +248,102 @@ document.addEventListener('deviceready', function () {
             return;
         }
 
-        recentSessions.forEach((session, i) => {
-            const sessionIndex = i + offset;
-            const div = document.createElement("div");
+        const reversedSessions = [...recentSessions].reverse();
 
-            const date = new Date(session.date).toLocaleString();
-            const header = document.createElement("strong");
-            header.textContent = date;
-            div.appendChild(header);
-            div.appendChild(document.createElement("br"));
+        const table = document.createElement("table");
 
-            session.sets.forEach(set => {
-                const p = document.createElement("p");
-                p.innerHTML = `Weight: ${set.weight}kg, Reps: ${set.reps}, Effort: ${set.effort}`;
-                div.appendChild(p);
-            });
-
-            const editBtn = document.createElement("button");
-            editBtn.textContent = "Edit";
-            editBtn.addEventListener("click", () => {
-                loadSessionForEditing(exercise, sessionIndex);
-            });
-            div.appendChild(editBtn);
-
-            const hr = document.createElement("hr");
-            div.appendChild(hr);
-
-            historyContainer.appendChild(div);
+        const headerRow = document.createElement("tr");
+        ["Date", "Set #", "Weight (kg)", "Reps", "Effort", "Actions"].forEach(text => {
+            const th = document.createElement("th");
+            th.textContent = text;
+            headerRow.appendChild(th);
         });
+        table.appendChild(headerRow);
+
+        reversedSessions.forEach((session, i) => {
+            const sessionIndex = sessions.length - 1 - i;
+            const date = new Date(session.date);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = String(date.getFullYear()).slice(-2);
+
+            const dateStr = `${day}.${month}.${year}`;
+            const setCount = session.sets.length;
+
+            session.sets.forEach((set, setIndex) => {
+                const row = document.createElement("tr");
+                if (setIndex === setCount - 1) {
+                    row.style.borderBottom = "2px solid #ccc";
+                }
+                if (setIndex === 0) {
+                    const dateCell = document.createElement("td");
+                    dateCell.textContent = dateStr;
+                    dateCell.rowSpan = setCount;
+                    dateCell.classList.add("date-cell");
+                    row.appendChild(dateCell);
+                }
+
+                const setNumCell = document.createElement("td");
+                setNumCell.textContent = setIndex + 1;
+                row.appendChild(setNumCell);
+
+                const weightCell = document.createElement("td");
+                weightCell.textContent = set.weight;
+                row.appendChild(weightCell);
+
+                const repsCell = document.createElement("td");
+                repsCell.textContent = set.reps;
+                row.appendChild(repsCell);
+
+                const effortCell = document.createElement("td");
+
+                const emojiMap = {
+                    easy: { icon: "easy-smiley.svg", class: "effort-easy" },
+                    moderate: { icon: "moderate-smiley.svg", class: "effort-moderate" },
+                    challenging: { icon: "challenging-smiley.svg", class: "effort-challenging" }
+                };
+
+                const img = document.createElement("img");
+                img.src = `img/`+emojiMap[set.effort.toLowerCase()].icon;
+                img.className = `effort-icon ${emojiMap[set.effort.toLowerCase()].class}`;
+                effortCell.appendChild(img);
+                row.appendChild(effortCell);
+
+                if (setIndex === 0) {
+                    const actionCell = document.createElement("td");
+                    actionCell.rowSpan = setCount;
+
+                    const editBtn = document.createElement("button");
+                    editBtn.textContent = "✏️";
+                    editBtn.addEventListener("click", () => {
+                        loadSessionForEditing(exercise, sessionIndex);
+                    });
+                    actionCell.appendChild(editBtn);
+                    row.appendChild(actionCell);
+                }
+
+                table.appendChild(row);
+            });
+        });
+
+        historyContainer.appendChild(table);
+    }
+
+    function exportExerciseHistory() {
+        const data = getHistory();
+        const json = JSON.stringify(data, null, 2);
+
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'exerciseHistory.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        URL.revokeObjectURL(url);
     }
 
     function createSetEntry(set = { weight: '', reps: '', effort: 'easy' }) {
@@ -242,21 +361,21 @@ document.addEventListener('deviceready', function () {
           <option value="challenging" ${set.effort === "challenging" ? "selected" : ""}>Challenging</option>
         </select>
       </label>
-      <label>Remove Set<button type="button" class="remove-set">❌</button></label>
+      <label class="remove-label">Remove Set<br><button type="button" class="remove-set">❌</button></label>
     `;
 
         const removeBtn = setDiv.querySelector(".remove-set");
         removeBtn.addEventListener("click", () => {
-            setDiv.remove();
+            const confirmed = confirm("Are you sure you want to remove this set?");
+            if (confirmed) {
+                setDiv.remove();
+            }
         });
 
         return setDiv;
     }
 
-
-
     addSetBtn.addEventListener("click", () => {
-        const setsContainer = document.getElementById("sets-container");
         setsContainer.appendChild(createSetEntry());
     });
 
@@ -305,9 +424,10 @@ document.addEventListener('deviceready', function () {
         saveHistory(history);
         renderHistory(exercise);
         form.reset();
+
         currentlyEditing = null;
 
-        setsContainer.appendChild(createSetEntry());
+        setsContainer.innerHTML = ``;
     });
 
     exerciseInput.addEventListener("blur", () => {

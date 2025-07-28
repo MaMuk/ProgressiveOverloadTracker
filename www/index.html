@@ -18,7 +18,7 @@
             text-align: center;
         }
 
-        #home-button {
+        #home-button , #settings-button{
             display: block;
             margin: 0 auto 1rem auto;
             padding: 0.6rem 1.2rem;
@@ -40,6 +40,10 @@
             box-shadow: 0 0 5px rgba(0,0,0,0.1);
         }
 
+        .main-nav {
+            display: flex;
+            flex-direction: row;
+        }
         label {
             display: flex;
             flex-direction: column;
@@ -55,6 +59,9 @@
             border-radius: 5px;
             width: 100%;
         }
+        #exercise-name {
+            margin-left: -8px;
+        }
 
         .set-entry {
             display: flex;
@@ -66,8 +73,13 @@
         .set-entry label {
             flex: 1 1 100px;
         }
+        .remove-label {
+            flex-direction: column;
+            align-items: flex-start;
+        }
         .remove-set {
             height: fit-content;
+            margin-left: auto;
         }
 
         #add-set,
@@ -133,50 +145,123 @@
             filter: brightness(1.05);
         }
 
-        @media (max-width: 600px) {
-            .set-entry {
-                flex-direction: column;
-            }
+        table {
+            table-layout: fixed;
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-family: Arial, sans-serif;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 4px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+
+        }
+        td.date-cell {
+            white-space: wrap;
+            word-break: break-all;
+            overflow: scroll;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        td button {
+            padding: 0;
+            font-size: 1.1rem;
+            border: 0;
+            background-color: #f9f9f9;
+        }
+
+        .effort-easy {
+            color: #8BC34A;
+        }
+        .effort-moderate {
+            color: #FFEB3B;
+        }
+        .effort-challenging {
+            color: #F44336;
+        }
+        .effort-icon {
+            width: 28px;
+            height: 28px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .d-none {
+            display: none;
         }
     </style>
 </head>
 <body>
-<button id="home-button">🏠 Home</button>
+<div class="main-nav">
+    <button id="home-button">🏠 Home</button>
+    <button id="settings-button">⚙️ Settings</button>
+</div>
+<div id="exercise-container">
+    <form id="exercise-form">
+        <label>
+            Exercise:
+            <input type="text" id="exercise-name" required>
+            <div id="suggestions-container" style="position: relative;">
+                <ul id="suggestions-list"></ul>
+            </div>
+        </label>
 
-<form id="exercise-form">
-    <label>
-        Exercise:
-        <input type="text" id="exercise-name" required>
-        <div id="suggestions-container" style="position: relative;">
-            <ul id="suggestions-list"></ul>
+        <div id="sets-container"><!--
+            <div class="set-entry">
+                <label>Weight (kg): <input type="number" class="weight" required></label>
+                <label>Reps: <input type="number" class="reps" required></label>
+                <label>
+                    Effort:
+                    <select class="effort">
+                        <option value="easy">Easy</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="challenging">Challenging</option>
+                    </select>
+                </label>
+                <label>Remove Set<button type="button" class="remove-set" onclick="alert('why do you want to remove the first set? 🤡')">❌</button></label>
+            </div>-->
         </div>
-    </label>
 
-    <div id="sets-container">
-        <div class="set-entry">
-            <label>Weight (kg): <input type="number" class="weight" required></label>
-            <label>Reps: <input type="number" class="reps" required></label>
-            <label>
-                Effort:
-                <select class="effort">
-                    <option value="easy">Easy</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="challenging">Challenging</option>
-                </select>
-            </label>
-            <label>Remove Set<button type="button" class="remove-set" onclick="alert('why do you want to remove the first set? 🤡')">❌</button></label>
-        </div>
+        <button type="button" id="add-set">Add Another Set</button>
+        <button type="submit">Save Workout</button>
+    </form>
+
+    <hr>
+
+    <div id="history-container">
+        <h2>History</h2>
+        <div id="history-entries"></div>
+    </div>
+</div>
+<div id="settings-container" class="settings-container d-none">
+
+    <!-- Export Section -->
+    <div class="settings-section">
+        <h3>Export Data</h3>
+        <p>Download your exercise history as a JSON file to back it up or transfer it to another device.</p>
+        <button id="export-button">📤 Export History</button>
     </div>
 
-    <button type="button" id="add-set">Add Another Set</button>
-    <button type="submit">Save Workout</button>
-</form>
+    <!-- Import Section -->
+    <div class="settings-section">
+        <h3>Import Data</h3>
+        <p>Import a previously exported JSON file. This will replace your current exercise history.</p>
+        <input id="import-button" type="file" accept="application/json" />
+    </div>
 
-<hr>
-
-<div id="history-container">
-    <h2>Past Workouts</h2>
-    <div id="history-entries"></div>
 </div>
 
 <script src="cordova.js"></script>
