@@ -333,17 +333,39 @@ document.addEventListener('deviceready', function () {
         const data = getHistory();
         const json = JSON.stringify(data, null, 2);
 
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
+        if (window.cordova && cordova.platformId !== 'browser') {
+            // Native Cordova export (Android/iOS)
+            const blob = new Blob([json], { type: 'application/json' });
 
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'exerciseHistory.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+            window.resolveLocalFileSystemURL(cordova.file.externalDataDirectory, function (dirEntry) {
+                dirEntry.getFile("exerciseHistory.json", { create: true }, function (fileEntry) {
+                    fileEntry.createWriter(function (fileWriter) {
+                        fileWriter.write(blob);
+                        fileWriter.onwriteend = function () {
+                            alert("Exported to device successfully!");
+                        };
+                        fileWriter.onerror = function (e) {
+                            alert("Failed to write file: " + e.toString());
+                        };
+                    });
+                });
+            }, function (err) {
+                alert("Failed to access file system: " + err.toString());
+            });
+        } else {
+            // Browser-compatible export
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
 
-        URL.revokeObjectURL(url);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'exerciseHistory.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            URL.revokeObjectURL(url);
+        }
     }
 
     function createSetEntry(set = { weight: '', reps: '', effort: 'easy' }) {
