@@ -29,7 +29,29 @@
             color: white;
             cursor: pointer;
         }
-
+        .generic-button {
+            display: block;
+            padding: 0.6rem 1.2rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: #f0f0f0;
+            color: #333;
+            cursor: pointer;
+        }
+        label.generic-button {
+            display: unset;
+            flex-direction: unset;
+            gap: 0.5em;
+        }
+        label.generic-button:hover,
+        label.generic-button:focus {
+            background-color: #ddd;
+            outline: none;
+        }
+        label.generic-button:active {
+            background-color: #ccc;
+        }
         form {
             display: flex;
             flex-direction: column;
@@ -182,6 +204,50 @@
             border: 0;
             background-color: #f9f9f9;
         }
+        table.license-attribution {
+            font-size: small;
+        }
+        table.license-attribution td img {
+            width: 32px;
+            height: auto;
+            display: block;
+        }
+        th.license-attribution-paragraph {
+            white-space: unset;
+            overflow: unset;
+            font-weight: unset;
+            text-align: left;
+            background-color: unset;
+        }
+        table.license-attribution td {
+            white-space: unset;
+            overflow: unset;
+        }
+        .custom-file-label {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+        }
+        .import-export-buttons {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3em;
+
+            padding: 0.5em 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+
+            background-color: #f0f0f0;
+            color: #333;
+
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+
 
         .effort-easy {
             color: #8BC34A;
@@ -198,6 +264,13 @@
             display: inline-block;
             vertical-align: middle;
         }
+        .icon-inline {
+            width: 1.5em;
+            height: 1.5em;
+            vertical-align: middle;
+            display: inline-block;
+        }
+
 
         .d-none {
             display: none;
@@ -206,8 +279,12 @@
 </head>
 <body>
 <div class="main-nav">
-    <button id="home-button">🏠 Home</button>
-    <button id="settings-button">⚙️ Settings</button>
+    <button id="home-button">
+        <img src="img/openmoji/1F3E0.svg" alt="Home icon" class="icon-inline" /> Home
+    </button>
+    <button id="settings-button">
+        <img src="img/openmoji/2699.svg" alt="Settings icon" class="icon-inline" /> Settings
+    </button>
 </div>
 <div id="exercise-container">
     <form id="exercise-form">
@@ -219,20 +296,7 @@
             </div>
         </label>
 
-        <div id="sets-container"><!--
-            <div class="set-entry">
-                <label>Weight (kg): <input type="number" class="weight" required></label>
-                <label>Reps: <input type="number" class="reps" required></label>
-                <label>
-                    Effort:
-                    <select class="effort">
-                        <option value="easy">Easy</option>
-                        <option value="moderate">Moderate</option>
-                        <option value="challenging">Challenging</option>
-                    </select>
-                </label>
-                <label>Remove Set<button type="button" class="remove-set" onclick="alert('why do you want to remove the first set? 🤡')">❌</button></label>
-            </div>-->
+        <div id="sets-container">
         </div>
 
         <button type="button" id="add-set">Add Another Set</button>
@@ -252,15 +316,67 @@
     <div class="settings-section">
         <h3>Export Data</h3>
         <p>Download your exercise history as a JSON file to back it up or transfer it to another device.</p>
-        <button id="export-button">📤 Export History</button>
+        <label id="export-button" class="generic-button"><img src="img/openmoji/1F4E4.svg" alt="Export icon" class="icon-inline" /> Export History</label>
     </div>
 
     <!-- Import Section -->
     <div class="settings-section">
         <h3>Import Data</h3>
         <p>Import a previously exported JSON file. This will replace your current exercise history.</p>
-        <input id="import-button" type="file" accept="application/json" />
+        <label for="import-button" class="generic-button" tabindex="0">
+            <img src="img/openmoji/1F4E5.svg" alt="Import icon" class="icon-inline" /> Import History
+        </label>
+        <input id="import-button" type="file" accept="application/json" style="display:none" />
     </div>
+    <hr>
+    <h4>Licensing & Attributions</h4>
+    <table class="license-attribution">
+        <thead>
+        <tr>
+            <th class="license-attribution-paragraph" colspan="2">
+                <p>
+                    This application uses icons sourced from the OpenMoji project.
+                    The following icons are licensed under the <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)</a> license.
+                    Each icon is attributed to its respective creator as detailed below, in compliance with the license terms. For more information, please visit <a href="https://openmoji.org/" target="_blank" rel="noopener noreferrer">openmoji.org</a>.
+                </p>
+            </th>
+        </tr>
+        <tr>
+            <th>Icon</th>
+            <th>Author &amp; Source</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><img src="img/openmoji/1F3E0.svg" alt="house" /></td>
+            <td>Martin Wehl - <a href="https://openmoji.org/library/emoji-1F3E0/" target="_blank" rel="noopener noreferrer">house</a></td>
+        </tr>
+        <tr>
+            <td><img src="img/openmoji/1F4E5.svg" alt="inbox tray" /></td>
+            <td>Marius Schnabel  - <a href="https://openmoji.org/library/emoji-1F4E5/" target="_blank" rel="noopener noreferrer">inbox tray</a></td>
+        </tr>
+        <tr>
+            <td><img src="img/openmoji/1F4E4.svg" alt="outbox tray" /></td>
+            <td>Marius Schnabel  - <a href="https://openmoji.org/library/emoji-1F4E4/" target="_blank" rel="noopener noreferrer">outbox tray</a></td>
+        </tr>
+        <tr>
+            <td><img src="img/openmoji/2699.svg" alt="gear" /></td>
+            <td>Hilda Kalyoncu  - <a href="https://openmoji.org/library/emoji-2699/" target="_blank" rel="noopener noreferrer">gear</a></td>
+        </tr>
+        <tr>
+            <td><img src="img/openmoji/1F50E.svg" alt="magnifying glass tilted right" /></td>
+            <td>Sina Schulz - <a href="https://openmoji.org/library/emoji-1F50E/" target="_blank" rel="noopener noreferrer">magnifying glass tilted right</a></td>
+        </tr>
+        <tr>
+            <td><img src="img/openmoji/270F.svg" alt="pencil" /></td>
+            <td>Rana Cakir - <a href="https://openmoji.org/library/emoji-270F/" target="_blank" rel="noopener noreferrer">pencil</a></td>
+        </tr>
+        <tr>
+            <td><img src="img/openmoji/2934.svg" alt="pencil" /></td>
+            <td>Jose Avila  - <a href="https://openmoji.org/library/emoji-2934/" target="_blank" rel="noopener noreferrer">right arrow curving up</a> (rotated by me)</td>
+        </tr>
+        </tbody>
+    </table>
 
 </div>
 

@@ -55,7 +55,7 @@ document.addEventListener('deviceready', function () {
             } catch (err) {
                 alert('Invalid JSON file');
             }
-            input.value = "";
+            event.target.value = "";
         };
         reader.readAsText(file);
     });
@@ -124,7 +124,7 @@ document.addEventListener('deviceready', function () {
             tr.style.cursor = "pointer";
 
             const iconTd = document.createElement("td");
-            iconTd.textContent = "🔎";
+            iconTd.innerHTML = '<img src="img/openmoji/1F50E.svg" alt="Search icon" class="icon-inline" />';
             tr.appendChild(iconTd);
 
             const dateTd = document.createElement("td");
@@ -142,8 +142,20 @@ document.addEventListener('deviceready', function () {
 
     function showWorkoutsForDate(workouts, dateKey) {
         const container = document.getElementById("history-entries");
-        container.innerHTML = `<h3>Workouts on ${new Date(dateKey).toDateString()}</h3>`;
+        const backButton = document.createElement('button');
+        const titleElement = document.createElement('h3');
 
+        titleElement.innerText = `Workouts on ${new Date(dateKey).toDateString()}`
+
+        backButton.innerHTML = '<img src="img/openmoji/2934.svg" alt="Back icon" class="icon-inline" /> Back';
+        backButton.classList.add('generic-button');
+        backButton.addEventListener('click', ()=>{
+            listWorkoutDates();
+        });
+
+        container.innerHTML = '';
+        container.appendChild(titleElement);
+        container.appendChild(backButton);
         const table = document.createElement("table");
         const tbody = document.createElement("tbody");
 
@@ -152,7 +164,8 @@ document.addEventListener('deviceready', function () {
             tr.style.cursor = "pointer";
 
             const iconTd = document.createElement("td");
-            iconTd.textContent = "✏️";
+            iconTd.innerHTML = '<img src="img/openmoji/1F50E.svg" alt="Search icon" class="icon-inline" />';
+
             tr.appendChild(iconTd);
 
             const exerciseTd = document.createElement("td");
@@ -160,7 +173,7 @@ document.addEventListener('deviceready', function () {
             tr.appendChild(exerciseTd);
 
             tr.addEventListener("click", () => {
-                loadSessionForEditing(exercise, sessionIndex);
+                renderHistory(exercise, sessionIndex, workouts, dateKey);
             });
 
             tbody.appendChild(tr);
@@ -234,19 +247,33 @@ document.addEventListener('deviceready', function () {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
 
-    function renderHistory(exercise) {
+    function renderHistory(exercise, sessionIndex = null, workouts = null, dateKey = null) {
         const history = getHistory();
         const sessions = history[exercise] || [];
-
-        const recentSessions = sessions.slice(-MAX_HISTORY);
-        const offset = sessions.length - recentSessions.length;
-
-        historyContainer.innerHTML = '';
+        let recentSessions = sessions.slice(-MAX_HISTORY);
+        if(sessionIndex !== null){
+            recentSessions = [history[exercise][sessionIndex]];
+        }
+            historyContainer.innerHTML = '';
 
         if (!recentSessions.length) {
             historyContainer.innerHTML = '<p>No history yet for this exercise.</p>';
             return;
+        }else{
+            const titleElement = document.createElement("h3");
+            titleElement.innerText = `${exercise}${dateKey ? ' on ' + new Date(dateKey).toDateString() : ''}`;
+            historyContainer.appendChild(titleElement);
+            if(workouts && dateKey){
+                const backButton = document.createElement('button');
+                backButton.innerHTML = '<img src="img/openmoji/2934.svg" alt="Back icon" class="icon-inline" /> Back';
+                backButton.classList.add('generic-button');
+                backButton.addEventListener("click", ()=>{
+                    showWorkoutsForDate(workouts, dateKey);
+                });
+                historyContainer.appendChild(backButton);
+            }
         }
+
 
         const reversedSessions = [...recentSessions].reverse();
 
@@ -314,7 +341,8 @@ document.addEventListener('deviceready', function () {
                     actionCell.rowSpan = setCount;
 
                     const editBtn = document.createElement("button");
-                    editBtn.textContent = "✏️";
+                    editBtn.innerHTML = '<img src="img/openmoji/270F.svg" alt="Edit icon" class="icon-inline" />';
+
                     editBtn.addEventListener("click", () => {
                         loadSessionForEditing(exercise, sessionIndex);
                     });
