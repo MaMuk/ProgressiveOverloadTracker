@@ -12,7 +12,7 @@ Each icon is created by different contributors from the OpenMoji community. Prop
 | ![gear](2699.svg) | Hilda Kalyoncu — [gear](https://openmoji.org/library/emoji-2699/)                               |
 | ![magnifying glass tilted right](1F50E.svg) | Sina Schulz — [magnifying glass tilted right](https://openmoji.org/library/emoji-1F50E/)        |
 | ![pencil](270F.svg) | Rana Cakir — [pencil](https://openmoji.org/library/emoji-270F/)                                 |
-| ![right arrow curving up](2934.svg) | Rana Cakir — [right arrow curving up](https://openmoji.org/library/emoji-2934/) (rotated by me) |
+| ![right arrow curving up](2934.svg) | Jose Avila — [right arrow curving up](https://openmoji.org/library/emoji-2934/) (rotated by me) |
 ---
 
 ### License
