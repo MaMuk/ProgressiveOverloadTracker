@@ -360,7 +360,8 @@ document.addEventListener('deviceready', function () {
     function exportExerciseHistory() {
         const data = getHistory();
         const json = JSON.stringify(data, null, 2);
-        const filename = "exerciseHistory.json";
+        const dateStamp = new Date().toISOString().split('T')[0];
+        const filename = `exerciseHistory-${dateStamp}.json`;
 
         if (window.cordova && cordova.platformId === 'android') {
             document.addEventListener("deviceready", () => {
