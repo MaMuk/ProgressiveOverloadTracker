@@ -13,13 +13,8 @@ document.addEventListener('deviceready', function () {
     const settingsContainer = document.getElementById("settings-container");
 
     document.getElementById("home-button").addEventListener('click', () => {
+        setActiveTab("home-button");
 
-        if(exerciseContainer.classList.contains('d-none')){
-            exerciseContainer.classList.remove('d-none');
-        }
-        if(!settingsContainer.classList.contains('d-none')){
-            settingsContainer.classList.add('d-none');
-        }
         document.getElementById("exercise-name").value = "";
 
         document.getElementById("exercise-form").reset();
@@ -32,12 +27,11 @@ document.addEventListener('deviceready', function () {
         listWorkoutDates();
     });
     document.getElementById("settings-button").addEventListener('click', ()=> {
-        if(!exerciseContainer.classList.contains('d-none')){
-            exerciseContainer.classList.add('d-none');
-        }
-        if(settingsContainer.classList.contains('d-none')){
-            settingsContainer.classList.remove('d-none');
-        }
+        setActiveTab("settings-button");
+    });
+    document.getElementById("stats-button").addEventListener('click', () => {
+        setActiveTab("stats-button");
+        renderWorkoutHeatmap();
     });
     document.getElementById("export-button").addEventListener('click', exportExerciseHistory);
     document.getElementById("import-button").addEventListener('change', (event) => {
@@ -61,6 +55,170 @@ document.addEventListener('deviceready', function () {
     });
     listWorkoutDates();
 
+    function setActiveTab(target) {
+        const mainNav = document.getElementsByClassName('main-nav')[0];
+        const buttons = mainNav.getElementsByTagName('button');
+
+        for (let button of buttons) {
+            if (button.id === target) {
+                button.classList.add('active-tab');
+            } else {
+                button.classList.remove('active-tab');
+            }
+        }
+
+        const mapping = {
+            "settings-button": "settings-container",
+            "stats-button": "stats-container",
+            "home-button": "exercise-container"
+        };
+
+        const containers = document.getElementsByClassName('content-container');
+        for (let container of containers) {
+            container.classList.add('d-none');
+        }
+
+        const targetContainerId = mapping[target];
+        if (targetContainerId) {
+            document.getElementById(targetContainerId).classList.remove('d-none');
+        }
+    }
+    function renderWorkoutHeatmap() {
+        const section = document.getElementById('heatmap-section');
+        section.innerHTML = ''; // Clear previous content
+
+        const history = getHistory();
+
+        // Calculate daily volumes { 'YYYY-MM-DD': volume }
+        const dailyVolumes = {};
+        let firstWorkoutDate = null;
+
+        for (const exercise of Object.values(history)) {
+            for (const entry of exercise) {
+                const day = entry.date.slice(0, 10);
+                if (!firstWorkoutDate || day < firstWorkoutDate) {
+                    firstWorkoutDate = day;
+                }
+                let volume = 0;
+                for (const set of entry.sets) {
+                    volume += (set.weight || 0) * (set.reps || 0);
+                }
+                dailyVolumes[day] = (dailyVolumes[day] || 0) + volume;
+            }
+        }
+
+        if (!firstWorkoutDate) {
+            section.textContent = 'No workout data available.';
+            return;
+        }
+
+        const today = new Date();
+        const sixMonthsAgo = new Date(today);
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        // Start date: max(sixMonthsAgo, firstWorkoutDate)
+        const startDate = new Date(firstWorkoutDate);
+        if (startDate < sixMonthsAgo) {
+            startDate.setTime(sixMonthsAgo.getTime());
+        }
+
+        // Find the first Monday on or before startDate
+        const firstMonday = new Date(startDate);
+        firstMonday.setDate(firstMonday.getDate() - ((firstMonday.getDay() + 6) % 7));
+
+        // Calculate total weeks to cover until today
+        const daysDiff = Math.ceil((today - firstMonday) / (1000 * 60 * 60 * 24));
+        const totalWeeks = Math.ceil(daysDiff / 7);
+
+        // Find max volume
+        const maxVolume = Math.max(...Object.values(dailyVolumes), 0);
+        const maxDay = maxVolume > 0
+            ? Object.entries(dailyVolumes).reduce((a, b) => (b[1] > a[1] ? b : a))[0]
+            : null;
+
+        function volumeToColor(volume) {
+            if (volume === 0) return '';
+            const startRGB = [204, 255, 204];
+            const endRGB = [0, 153, 0];
+            const ratio = volume / maxVolume;
+            const r = Math.round(startRGB[0] + ratio * (endRGB[0] - startRGB[0]));
+            const g = Math.round(startRGB[1] + ratio * (endRGB[1] - startRGB[1]));
+            const b = Math.round(startRGB[2] + ratio * (endRGB[2] - startRGB[2]));
+            return `rgb(${r},${g},${b})`;
+        }
+
+        // Build weeks data: weeks[w][weekday]
+        const weeks = Array.from({ length: totalWeeks }, () => Array(7).fill(null));
+        for (let w = 0; w < totalWeeks; w++) {
+            for (let wd = 0; wd < 7; wd++) {
+                const currDate = new Date(firstMonday);
+                currDate.setDate(currDate.getDate() + w * 7 + wd);
+                if (currDate > today) continue;
+                const iso = currDate.toISOString().slice(0, 10);
+                weeks[w][wd] = iso;
+            }
+        }
+
+        const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const table = document.createElement('table');
+        table.id = 'workout-heatmap';
+
+        for (let wd = 0; wd < 7; wd++) {
+            const tr = document.createElement('tr');
+
+            // Weekday label column
+            const th = document.createElement('th');
+            th.textContent = weekdays[wd];
+            tr.appendChild(th);
+
+            for (let w = 0; w < totalWeeks; w++) {
+                const td = document.createElement('td');
+                td.className = 'day-tile';
+
+                const dateISO = weeks[w][wd];
+                if (dateISO) {
+                    const volume = dailyVolumes[dateISO] || 0;
+                    const bg = volumeToColor(volume);
+                    if (bg) td.style.backgroundColor = bg;
+                    td.title = `${dateISO}\nVolume: ${volume}`;
+
+                    if (dateISO === maxDay) {
+                        const starImg = document.createElement('img');
+                        starImg.src = 'img/openmoji/2B50.svg';
+                        starImg.className = 'star-icon';
+                        starImg.alt = 'Highest volume day';
+                        td.appendChild(starImg);
+                    }
+                    if (volume > 0) {
+                        td.style.cursor = 'pointer';
+
+                        td.addEventListener('click', () => {
+                            const workoutsForDate = [];
+                            Object.entries(history).forEach(([exercise, sessions]) => {
+                                sessions.forEach((session, idx) => {
+                                    if (session.date.slice(0, 10) === dateISO) {
+                                        workoutsForDate.push({
+                                            exercise,
+                                            sessionIndex: idx,
+                                            session
+                                        });
+                                    }
+                                });
+                            });
+
+                            setActiveTab("home-button");
+                            showWorkoutsForDate(workoutsForDate, dateISO, "heatmap");
+                        });
+                    }
+                }
+                tr.appendChild(td);
+            }
+
+            table.appendChild(tr);
+        }
+
+        section.appendChild(table);
+    }
 
     function getExerciseSuggestions(prefix) {
         const history = getHistory();
@@ -109,7 +267,7 @@ document.addEventListener('deviceready', function () {
         const sortedDates = Object.keys(dateToWorkouts).sort((a, b) => b.localeCompare(a));
 
         const container = document.getElementById("history-entries");
-        container.innerHTML = "<h3>Workout Days</h3>";
+        container.innerHTML = "<h3>Past Workouts</h3>";
 
         if (sortedDates.length === 0) {
             container.innerHTML += "<p>No workouts recorded yet.</p>";
@@ -117,6 +275,7 @@ document.addEventListener('deviceready', function () {
         }
 
         const table = document.createElement("table");
+        table.classList.add("workout-dates-table");
         const tbody = document.createElement("tbody");
 
         sortedDates.forEach(date => {
@@ -140,7 +299,7 @@ document.addEventListener('deviceready', function () {
         container.appendChild(table);
     }
 
-    function showWorkoutsForDate(workouts, dateKey) {
+    function showWorkoutsForDate(workouts, dateKey, origin = 'history') {
         const container = document.getElementById("history-entries");
         const backButton = document.createElement('button');
         const titleElement = document.createElement('h3');
@@ -150,13 +309,18 @@ document.addEventListener('deviceready', function () {
         backButton.innerHTML = '<img src="img/openmoji/2934.svg" alt="Back icon" class="icon-inline" /> Back';
         backButton.classList.add('generic-button');
         backButton.addEventListener('click', ()=>{
-            listWorkoutDates();
+            if(origin === 'heatmap'){
+                setActiveTab('stats-button');
+            }else{
+                listWorkoutDates();
+            }
         });
 
         container.innerHTML = '';
         container.appendChild(titleElement);
         container.appendChild(backButton);
         const table = document.createElement("table");
+        table.classList.add("workout-day-table");
         const tbody = document.createElement("tbody");
 
         workouts.forEach(({ exercise, sessionIndex, session }) => {
@@ -278,6 +442,7 @@ document.addEventListener('deviceready', function () {
         const reversedSessions = [...recentSessions].reverse();
 
         const table = document.createElement("table");
+        table.classList.add("workout-history-table");
 
         const headerRow = document.createElement("tr");
         ["Date", "Set #", "Weight (kg)", "Reps", "Effort", "Actions"].forEach(text => {
@@ -460,24 +625,25 @@ document.addEventListener('deviceready', function () {
         if (sets.length === 0) return;
 
         const history = getHistory();
+        const exerciseHistory = history[exercise] || (history[exercise] = []);
 
-        if (!history[exercise]) {
-            history[exercise] = [];
-        }
+        const isEditing = currentlyEditing &&
+            currentlyEditing.exercise === exercise &&
+            exerciseHistory[currentlyEditing.sessionIndex];
+
+        const sessionDate = isEditing
+            ? exerciseHistory[currentlyEditing.sessionIndex].date
+            : new Date().toISOString();
 
         const newSession = {
-            date: new Date().toISOString(),
-            sets
+            date: sessionDate,
+            sets,
         };
 
-        if (
-            currentlyEditing &&
-            currentlyEditing.exercise === exercise &&
-            history[exercise][currentlyEditing.sessionIndex]
-        ) {
-            history[exercise][currentlyEditing.sessionIndex] = newSession;
+        if (isEditing) {
+            exerciseHistory[currentlyEditing.sessionIndex] = newSession;
         } else {
-            history[exercise].push(newSession);
+            exerciseHistory.push(newSession);
         }
 
         saveHistory(history);
@@ -485,8 +651,7 @@ document.addEventListener('deviceready', function () {
         form.reset();
 
         currentlyEditing = null;
-
-        setsContainer.innerHTML = ``;
+        setsContainer.innerHTML = '';
     });
 
     exerciseInput.addEventListener("blur", () => {

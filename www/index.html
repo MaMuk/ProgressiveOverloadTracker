@@ -17,17 +17,23 @@
         h1, h2 {
             text-align: center;
         }
-
-        #home-button , #settings-button{
+        .nav-tab{
             display: block;
-            margin: 0 auto 1rem auto;
+            margin: 0 auto 0 auto;
             padding: 0.6rem 1.2rem;
             font-size: 1rem;
-            border: none;
-            border-radius: 6px;
-            background-color: #007bff;
-            color: white;
+            border: 1px solid lightgray;
+            background-color: #e6e6e6;
+            color: gray;
             cursor: pointer;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+        }
+        #home-button {
+            margin-left: 0;
+        }
+        #settings-button{
+            margin-right: 0;
         }
         .generic-button {
             display: block;
@@ -52,19 +58,37 @@
         label.generic-button:active {
             background-color: #ccc;
         }
-        form {
+        form.exercise-form {
             display: flex;
             flex-direction: column;
             gap: 1rem;
+        }
+        .content-container {
             background: white;
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 0 0 8px 8px;
+            border-left: 1px solid lightgray;
+            border-right: 1px solid lightgray;
             box-shadow: 0 0 5px rgba(0,0,0,0.1);
         }
-
+        .active-tab {
+            background-color: white !important;
+            color: #000000 !important;
+        }
         .main-nav {
             display: flex;
             flex-direction: row;
+            min-width: 379px;
+        }
+        @media (max-width: 429px) {
+            .main-nav {
+                flex-direction: column;
+                min-width: unset;
+            }
+            #home-button, #stats-button, #settings-button{
+                margin: unset;
+                border-radius: unset;
+            }
         }
         label {
             display: flex;
@@ -167,7 +191,10 @@
             filter: brightness(1.05);
         }
 
-        table {
+        table.workout-dates-table,
+        table.workout-day-table,
+        table.license-attribution,
+        table.workout-history-table {
             table-layout: fixed;
             width: 100%;
             border-collapse: collapse;
@@ -175,30 +202,43 @@
             font-family: Arial, sans-serif;
         }
 
-        th, td {
+        table.workout-dates-table th,
+        table.workout-dates-table td,
+        table.workout-day-table th,
+        table.workout-day-table td,
+        table.workout-history-table th,
+        table.workout-history-table td {
             border: 1px solid #ccc;
             padding: 4px;
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
-
         }
-        td.date-cell {
+        table.workout-dates-table td.date-cell,
+        table.workout-day-table td.date-cell,
+        table.workout-history-table td.date-cell {
             white-space: wrap;
             word-break: break-all;
             overflow: scroll;
         }
 
-        th {
+        table.workout-dates-table th,
+        table.workout-day-table th,
+        table.workout-history-table th {
             background-color: #f5f5f5;
             font-weight: bold;
         }
 
-        tr:nth-child(even) {
+        table.workout-dates-table tr:nth-child(even),
+        table.workout-day-table tr:nth-child(even),
+        table.license-attribution tr:nth-child(even),
+        table.workout-history-table tr:nth-child(even) {
             background-color: #f9f9f9;
         }
 
-        td button {
+        table.workout-dates-table td button,
+        table.workout-day-table td button,
+        table.workout-history-table td button {
             padding: 0;
             font-size: 1.1rem;
             border: 0;
@@ -219,9 +259,13 @@
             text-align: left;
             background-color: unset;
         }
-        table.license-attribution td {
+        table.license-attribution td,
+        table.license-attribution th{
+
             white-space: unset;
             overflow: unset;
+            border: 1px solid #ccc;
+            padding: 4px;
         }
         .custom-file-label {
             cursor: pointer;
@@ -271,6 +315,39 @@
             display: inline-block;
         }
 
+        #workout-heatmap {
+            border-collapse: collapse;
+            font-family: sans-serif;
+            user-select: none;
+        }
+        #workout-heatmap {
+            width: 100%;
+        }
+
+        #workout-heatmap th,
+        #workout-heatmap td {
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid #ddd;
+            padding: 0;
+            position: relative;
+        }
+        #workout-heatmap th {
+            background: #f0f0f0;
+            font-weight: normal;
+            padding-right: 6px;
+            text-align: right;
+            user-select: none;
+        }
+        .day-tile {
+            cursor: default;
+        }
+        .star-icon {
+            height: 80%;
+            pointer-events: none;
+        }
 
         .d-none {
             display: none;
@@ -279,29 +356,31 @@
 </head>
 <body>
 <div class="main-nav">
-    <button id="home-button">
-        <img src="img/openmoji/1F3E0.svg" alt="Home icon" class="icon-inline" /> Home
+    <button id="home-button" class="active-tab nav-tab">
+        <img src="img/openmoji/1F3E0.svg" alt="Home icon" class="icon-inline" /> Workout
     </button>
-    <button id="settings-button">
+    <button id="stats-button" class="nav-tab">
+        <img src="img/openmoji/1F4CA.svg" alt="Graph icon" class="icon-inline" /> Statistics
+    </button>
+    <button id="settings-button" class="nav-tab">
         <img src="img/openmoji/2699.svg" alt="Settings icon" class="icon-inline" /> Settings
     </button>
 </div>
-<div id="exercise-container">
-    <form id="exercise-form">
-        <label>
-            Exercise:
-            <input type="text" id="exercise-name" required>
-            <div id="suggestions-container" style="position: relative;">
-                <ul id="suggestions-list"></ul>
+<div id="exercise-container" class="content-container">
+        <form id="exercise-form" class="exercise-form">
+            <label>
+                Exercise:
+                <input type="text" id="exercise-name" required>
+                <div id="suggestions-container" style="position: relative;">
+                    <ul id="suggestions-list"></ul>
+                </div>
+            </label>
+            <div id="sets-container">
             </div>
-        </label>
 
-        <div id="sets-container">
-        </div>
-
-        <button type="button" id="add-set">Add Another Set</button>
-        <button type="submit">Save Workout</button>
-    </form>
+            <button type="button" id="add-set">Add Set</button>
+            <button type="submit">Save Workout</button>
+        </form>
 
     <hr>
 
@@ -310,7 +389,12 @@
         <div id="history-entries"></div>
     </div>
 </div>
-<div id="settings-container" class="settings-container d-none">
+<div id="stats-container" class="content-container d-none">
+    <h3>Heatmap</h3>
+    <section id="heatmap-section">
+    </section>
+</div>
+<div id="settings-container" class="settings-container d-none content-container">
 
     <!-- Export Section -->
     <div class="settings-section">
@@ -372,8 +456,16 @@
             <td>Rana Cakir - <a href="https://openmoji.org/library/emoji-270F/" target="_blank" rel="noopener noreferrer">pencil</a></td>
         </tr>
         <tr>
-            <td><img src="img/openmoji/2934.svg" alt="pencil" /></td>
+            <td><img src="img/openmoji/2934.svg" alt="right arrow curving up" /></td>
             <td>Jose Avila  - <a href="https://openmoji.org/library/emoji-2934/" target="_blank" rel="noopener noreferrer">right arrow curving up</a> (rotated by me)</td>
+        </tr>
+        <tr>
+            <td><img src="img/openmoji/1F4CA.svg" alt="bar chart" /></td>
+            <td>Sina Schulz  - <a href="https://openmoji.org/library/emoji-1F4CA/" target="_blank" rel="noopener noreferrer">bar chart</a></td>
+        </tr>
+        <tr>
+            <td><img src="img/openmoji/2B50.svg" alt="star" /></td>
+            <td>Vanessa Boutzikoudi  - <a href="https://openmoji.org/library/emoji-2B50/" target="_blank" rel="noopener noreferrer">star</a></td>
         </tr>
         </tbody>
     </table>

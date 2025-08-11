@@ -4,15 +4,17 @@ This folder contains icons sourced from the [OpenMoji](https://openmoji.org/) pr
 
 Each icon is created by different contributors from the OpenMoji community. Proper attribution for each icon used in this folder is provided below in compliance with the license terms.
 
-| Icon | Author & Source                                                                                 |
-|:----:|-------------------------------------------------------------------------------------------------|
-| ![house](1F3E0.svg) | Martin Wehl — [house](https://openmoji.org/library/emoji-1F3E0/)                                |
-| ![inbox tray](1F4E5.svg) | Marius Schnabel — [inbox tray](https://openmoji.org/library/emoji-1F4E5/)                       |
-| ![outbox tray](1F4E4.svg) | Marius Schnabel — [outbox tray](https://openmoji.org/library/emoji-1F4E4/)                      |
-| ![gear](2699.svg) | Hilda Kalyoncu — [gear](https://openmoji.org/library/emoji-2699/)                               |
+|                    Icon                     | Author & Source                                                                                 |
+|:-------------------------------------------:|-------------------------------------------------------------------------------------------------|
+|             ![house](1F3E0.svg)             | Martin Wehl — [house](https://openmoji.org/library/emoji-1F3E0/)                                |
+|          ![inbox tray](1F4E5.svg)           | Marius Schnabel — [inbox tray](https://openmoji.org/library/emoji-1F4E5/)                       |
+|          ![outbox tray](1F4E4.svg)          | Marius Schnabel — [outbox tray](https://openmoji.org/library/emoji-1F4E4/)                      |
+|              ![gear](2699.svg)              | Hilda Kalyoncu — [gear](https://openmoji.org/library/emoji-2699/)                               |
 | ![magnifying glass tilted right](1F50E.svg) | Sina Schulz — [magnifying glass tilted right](https://openmoji.org/library/emoji-1F50E/)        |
-| ![pencil](270F.svg) | Rana Cakir — [pencil](https://openmoji.org/library/emoji-270F/)                                 |
-| ![right arrow curving up](2934.svg) | Jose Avila — [right arrow curving up](https://openmoji.org/library/emoji-2934/) (rotated by me) |
+|             ![pencil](270F.svg)             | Rana Cakir — [pencil](https://openmoji.org/library/emoji-270F/)                                 |
+|     ![right arrow curving up](2934.svg)     | Jose Avila — [right arrow curving up](https://openmoji.org/library/emoji-2934/) (rotated by me) |
+|           ![bar chart](1F4CA.svg)           | Sina Schulz  — [bar chart](https://openmoji.org/library/emoji-1F4CA/)                           |
+|              ![star](2B50.svg)              | Vanessa Boutzikoudi — [star](https://openmoji.org/library/emoji-2B50/)                          |
 ---
 
 ### License
